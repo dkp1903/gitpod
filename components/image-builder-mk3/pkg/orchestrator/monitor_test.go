@@ -5,6 +5,7 @@
 package orchestrator
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -12,16 +13,19 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/gitpod-io/gitpod/common-go/kubernetes"
 	"github.com/gitpod-io/gitpod/image-builder/api"
 	wsmanapi "github.com/gitpod-io/gitpod/ws-manager/api"
 )
 
 func TestExtractBuildResponse(t *testing.T) {
 	const (
-		buildID         = "build-id"
-		ref             = "ref"
-		baseref         = "base-ref"
-		startedAt int64 = 12345
+		buildID          = "build-id"
+		ref              = "ref"
+		baseref          = "base-ref"
+		startedAt  int64 = 12345
+		url              = "https://some-url.some-domain.com"
+		ownerToken       = "super-secret-owner-token"
 	)
 	tests := []struct {
 		Name        string
@@ -86,13 +90,17 @@ func TestExtractBuildResponse(t *testing.T) {
 				Metadata: &wsmanapi.WorkspaceMetadata{
 					MetaId: buildID,
 					Annotations: map[string]string{
-						annotationRef:     ref,
-						annotationBaseRef: baseref,
+						annotationRef:                     ref,
+						annotationBaseRef:                 baseref,
+						kubernetes.WorkspaceURLAnnotation: url,
 					},
 					StartedAt: timestamppb.New(time.Unix(startedAt, 0)),
 				},
 				Conditions: &wsmanapi.WorkspaceConditions{},
 				Phase:      wsmanapi.WorkspacePhase_RUNNING,
+				Auth: &wsmanapi.WorkspaceAuthentication{
+					OwnerToken: ownerToken,
+				},
 			}
 			test.Mod(status)
 			act := extractBuildResponse(status)
@@ -107,6 +115,10 @@ func TestExtractBuildResponse(t *testing.T) {
 					BaseRef:   baseref,
 					Status:    api.BuildStatus_running,
 					StartedAt: startedAt,
+					LogUrl:    fmt.Sprintf("%s/_supervisor/v1", url),
+					LogUrlExtraHeaders: map[string]string{
+						"x-gitpod-owner-token": status.Auth.OwnerToken,
+					},
 				},
 			}
 			test.Expectation(exp)
