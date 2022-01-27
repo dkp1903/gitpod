@@ -212,7 +212,7 @@ func StartBuildkit(socketPath string) (cl *client.Client, teardown func() error,
 		"--debug",
 		"--addr="+socketPath,
 		"--oci-worker-net=host", "--oci-worker-snapshotter=stargz",
-		"--root=/workspace/buildkit",
+		"--root=/run/buildkitd",
 	)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Credential: &syscall.Credential{Uid: 0, Gid: 0}}
 	cmd.Stderr = stderr
