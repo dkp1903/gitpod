@@ -206,6 +206,8 @@ func StartBuildkit(socketPath string) (cl *client.Client, teardown func() error,
 		return nil, nil, xerrors.Errorf("cannot create buildkitd log file: %w", err)
 	}
 
+	log.Info("b")
+
 	cmd := exec.Command("buildkitd",
 		"--debug",
 		"--addr="+socketPath,
