@@ -1147,9 +1147,10 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
         try {
             const wsiEndpoint: WorkspaceInstanceEndpoint = {
                 instanceId: instance.id,
-                url: instance.ideUrl,
+                url: workspace.imageBuildLogInfo.url,
                 headers: workspace.imageBuildLogInfo.headers,
             };
+            log.info(`WSIE: ${JSON.stringify(wsiEndpoint, undefined, 2)}`);
             let lineCount = 0;
             await this.headlessLogService.streamImageBuildLog(wsiEndpoint, async (chunk) => {
                 if (aborted.isResolved) {

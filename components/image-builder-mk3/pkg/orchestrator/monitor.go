@@ -197,17 +197,23 @@ func extractBuildStatus(status *wsmanapi.WorkspaceStatus) *api.BuildInfo {
 		}
 	}
 
-	return &api.BuildInfo{
+	info := api.BuildInfo{
 		BuildId:   status.Metadata.MetaId,
 		Ref:       status.Metadata.Annotations[annotationRef],
 		BaseRef:   status.Metadata.Annotations[annotationBaseRef],
 		Status:    s,
 		StartedAt: status.Metadata.StartedAt.Seconds,
-		LogUrl:    fmt.Sprintf("%s/_supervisor/v1", status.Metadata.Annotations[kubernetes.WorkspaceURLAnnotation]),
-		LogUrlExtraHeaders: map[string]string{
-			"x-gitpod-owner-token": status.Auth.OwnerToken,
-		},
 	}
+
+	wsUrl := status.Metadata.Annotations[kubernetes.WorkspaceURLAnnotation]
+	if wsUrl != "" {
+		info.LogUrl = wsUrl
+		info.LogUrlExtraHeaders = map[string]string{
+			"x-gitpod-owner-token": status.Auth.OwnerToken,
+		}
+	}
+
+	return &info
 }
 
 func extractRunningBuild(status *wsmanapi.WorkspaceStatus) *runningBuild {

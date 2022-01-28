@@ -174,7 +174,7 @@ export class PromisifiedImageBuilderClient {
                 if (resp.hasInfo() && !logInfo.isResolved) {
                     // assumes that log info stays stable for instance lifetime
                     const info = resp.getInfo()
-                    if (info) {
+                    if (info && !!info.getLogUrl()) {
                         const headers: { [key: string]: string } = {};
                         for (const [k, v] of info.getLogUrlExtraHeadersMap().entries()) {
                             headers[k] = v;

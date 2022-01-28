@@ -5,7 +5,6 @@
 package orchestrator
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -115,7 +114,7 @@ func TestExtractBuildResponse(t *testing.T) {
 					BaseRef:   baseref,
 					Status:    api.BuildStatus_running,
 					StartedAt: startedAt,
-					LogUrl:    fmt.Sprintf("%s/_supervisor/v1", url),
+					LogUrl:    url,
 					LogUrlExtraHeaders: map[string]string{
 						"x-gitpod-owner-token": status.Auth.OwnerToken,
 					},
