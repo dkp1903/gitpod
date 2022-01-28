@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Gitpod GmbH. All rights reserved.
+// Copyright (c) 2022 Gitpod GmbH. All rights reserved.
 // Licensed under the GNU Affero General Public License (AGPL).
 // See License-AGPL.txt in the project root for license information.
 
@@ -54,42 +54,9 @@ var credentialHelper = &cobra.Command{
 			fmt.Printf("username=%s\npassword=%s\n", user, token)
 		}()
 
-		gitCmdInfo := &gitCommandInfo{}
-		err = walkProcessTree(os.Getpid(), func(pid int) bool {
-			cmdLine, err := readProc(pid, "cmdline")
-			if err != nil {
-				log.WithError(err).Print("error reading proc cmdline")
-				return true
-			}
-
-			cmdLineString := strings.ReplaceAll(cmdLine, string(byte(0)), " ")
-			gitCmdInfo.parseGitCommandAndOriginRemote(cmdLineString)
-
-			return gitCmdInfo.Ok()
-		})
-		if err != nil {
-			log.WithError(err).Print("error walking process tree")
-			return
-		}
-		if !gitCmdInfo.Ok() {
-			return
-		}
-
-		// Starts another process which tracks the executed git event
-		gitCommandTracker := exec.Command("/proc/self/exe", "git-track-command", "--gitCommand", gitCmdInfo.GitCommand)
-		err = gitCommandTracker.Start()
-		if err != nil {
-			log.WithError(err).Print("error spawning tracker")
-		} else {
-			err = gitCommandTracker.Process.Release()
-			if err != nil {
-				log.WithError(err).Print("error releasing tracker")
-			}
-		}
-
 		host := parseHostFromStdin()
 		if len(host) == 0 {
-			log.Println("'host' is missing")
+			log.Fatal("'host' is missing")
 		}
 
 		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
@@ -111,6 +78,41 @@ var credentialHelper = &cobra.Command{
 			log.WithError(err).Print("error getting token from supervisior")
 			return
 		}
+		user = resp.User
+		token = resp.Token
+
+		gitCmdInfo := &gitCommandInfo{}
+		err = walkProcessTree(os.Getpid(), func(pid int) bool {
+			cmdLine, err := readProc(pid, "cmdline")
+			if err != nil {
+				log.WithError(err).Print("error reading proc cmdline")
+				return true
+			}
+
+			cmdLineString := strings.ReplaceAll(cmdLine, string(byte(0)), " ")
+			gitCmdInfo.parseGitCommandAndOriginRemote(cmdLineString)
+
+			return gitCmdInfo.GitCommand != "" && gitCmdInfo.RepoUrl != ""
+		})
+		if err != nil {
+			log.WithError(err).Print("error walking process tree")
+			return
+		}
+		if gitCmdInfo.RepoUrl == "" {
+			log.Info("empty repo url, not need execute tracker-command and token-validator")
+			return
+		}
+		if gitCmdInfo.GitCommand == "" {
+			// if not detection the special git command, it may be called by other programs, such as npm
+			gitCmdInfo.GitCommand = "clone"
+		}
+
+		// Starts another process which tracks the executed git event
+		gitCommandTracker := exec.Command("/proc/self/exe", "git-track-command", "--gitCommand", gitCmdInfo.GitCommand)
+		_, err = gitCommandTracker.CombinedOutput()
+		if err != nil {
+			log.WithError(err).Print("error spawning tracker")
+		}
 
 		validator := exec.Command("/proc/self/exe", "git-token-validator",
 			"--user", resp.User, "--token", resp.Token, "--scopes", strings.Join(resp.Scope, ","),
@@ -125,8 +127,6 @@ var credentialHelper = &cobra.Command{
 			log.WithError(err).Print("error releasing validator")
 			return
 		}
-		user = resp.User
-		token = resp.Token
 	},
 }
 
@@ -155,12 +155,8 @@ type gitCommandInfo struct {
 	GitCommand string
 }
 
-func (g *gitCommandInfo) Ok() bool {
-	return g.RepoUrl != "" && g.GitCommand != ""
-}
-
 var gitCommandRegExp = regexp.MustCompile(`git(,\d+\s+|\s+)(push|clone|fetch|pull|diff)`)
-var repoUrlRegExp = regexp.MustCompile(`\sorigin\s*(https:[^\s]*)\s`)
+var repoUrlRegExp = regexp.MustCompile(`remote-https?\s([^\s]+)\s+(https?:[^\s]+)\s`)
 
 // This method needs to be called multiple times to fill all the required info
 // from different git commands
@@ -175,8 +171,8 @@ func (g *gitCommandInfo) parseGitCommandAndOriginRemote(cmdLineString string) {
 	}
 
 	matchRepo := repoUrlRegExp.FindStringSubmatch(cmdLineString)
-	if len(matchRepo) == 2 {
-		g.RepoUrl = matchRepo[1]
+	if len(matchRepo) == 3 {
+		g.RepoUrl = matchRepo[2]
 		if !strings.HasSuffix(g.RepoUrl, ".git") {
 			g.RepoUrl = g.RepoUrl + ".git"
 		}
@@ -203,21 +199,23 @@ func walkProcessTree(pid int, fn pidCallbackFn) error {
 	}
 }
 
+var procStatPidRegExp = regexp.MustCompile(`\d+\ \(.+?\)\ .+?\ (\d+)`)
+
 func getProcesParentId(pid int) (ppid int, err error) {
 	statsString, err := readProc(pid, "stat")
 	if err != nil {
 		return
 	}
 
-	stats := strings.Fields(statsString)
-	if len(stats) < 3 {
+	match := procStatPidRegExp.FindStringSubmatch(statsString)
+	if len(match) != 2 {
 		err = fmt.Errorf("CredentialHelper error cannot parse stats string: %s", statsString)
 		return
 	}
 
-	parentId, err := strconv.Atoi(stats[3])
+	parentId, err := strconv.Atoi(match[1])
 	if err != nil {
-		err = fmt.Errorf("CredentialHelper error cannot parse ppid: %s", stats[3])
+		err = fmt.Errorf("CredentialHelper error cannot parse ppid: %s", match[1])
 		return
 	}
 
