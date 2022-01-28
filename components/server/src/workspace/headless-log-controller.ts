@@ -54,6 +54,7 @@ export class HeadlessLogController {
             const logCtx = { userId: user.id, instanceId, workspaceId: workspace!.id };
             log.debug(logCtx, HEADLESS_LOGS_PATH_PREFIX);
 
+            const aborted = new Deferred<boolean>();
             try {
                 const head = {
                     'Content-Type': 'text/html; charset=utf-8',  // is text/plain, but with that node.js won't stream...
@@ -62,7 +63,6 @@ export class HeadlessLogController {
                 };
                 res.writeHead(200, head)
 
-                const aborted = new Deferred<boolean>();
                 const abort = (err: any) => {
                     aborted.resolve(true);
                     log.debug(logCtx, "headless-log: aborted");
@@ -101,6 +101,8 @@ export class HeadlessLogController {
 
                 res.write(`\n${HEADLESS_LOG_STREAM_STATUS_CODE}: 500`);
                 res.end();
+            } finally {
+                aborted.resolve(true);  // ensure that the promise gets resolved eventually!
             }
         })]);
         router.get("/", malformedRequestHandler);
