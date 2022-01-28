@@ -46,7 +46,7 @@ import { WorkspaceDeletionService } from './workspace-deletion-service';
 import { WorkspaceFactory } from './workspace-factory';
 import { WorkspaceStarter } from './workspace-starter';
 import { HeadlessLogUrls } from "@gitpod/gitpod-protocol/lib/headless-workspace-log";
-import { HeadlessLogService, WorkspaceInstanceEndpoint } from "./headless-log-service";
+import { HeadlessLogService, HeadlessLogEndpoint } from "./headless-log-service";
 import { InvalidGitpodYMLError } from "./config-provider";
 import { ProjectsService } from "../projects/projects-service";
 import { LocalMessageBroker } from "../messaging/local-message-broker";
@@ -1145,14 +1145,13 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
 
         const aborted = new Deferred<boolean>();
         try {
-            const wsiEndpoint: WorkspaceInstanceEndpoint = {
-                instanceId: instance.id,
+            const logEndpoint: HeadlessLogEndpoint = {
                 url: workspace.imageBuildLogInfo.url,
                 headers: workspace.imageBuildLogInfo.headers,
             };
-            log.info(`WSIE: ${JSON.stringify(wsiEndpoint, undefined, 2)}`);
+            log.info(`WSIE: ${JSON.stringify(logEndpoint, undefined, 2)}`);
             let lineCount = 0;
-            await this.headlessLogService.streamImageBuildLog(wsiEndpoint, async (chunk) => {
+            await this.headlessLogService.streamImageBuildLog(logCtx, logEndpoint, async (chunk) => {
                 if (aborted.isResolved) {
                     return;
                 }
@@ -1209,6 +1208,7 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
         traceAPIParams(ctx, { instanceId });
 
         this.checkAndBlockUser('getHeadlessLog', { instanceId });
+        const logCtx: LogContext = { instanceId };
 
         const ws = await this.workspaceDb.trace(ctx).findByInstanceId(instanceId);
         if (!ws) {
@@ -1225,7 +1225,7 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
             throw new ResponseError(ErrorCodes.NOT_FOUND, `Workspace instance for ${instanceId} not found`);
         }
 
-        const urls = await this.headlessLogService.getHeadlessLogURLs(wsi, ws.ownerId);
+        const urls = await this.headlessLogService.getHeadlessLogURLs(logCtx, wsi, ws.ownerId);
         if (!urls || (typeof urls.streams === "object" && Object.keys(urls.streams).length === 0)) {
             throw new ResponseError(ErrorCodes.NOT_FOUND, `Headless logs for ${instanceId} not found`);
         }
