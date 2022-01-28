@@ -205,7 +205,7 @@ func extractBuildStatus(status *wsmanapi.WorkspaceStatus) *api.BuildInfo {
 		StartedAt: status.Metadata.StartedAt.Seconds,
 	}
 
-	wsUrl := status.Metadata.Annotations[kubernetes.WorkspaceURLAnnotation]
+	wsUrl := status.Spec.Url
 	if wsUrl != "" {
 		info.LogUrl = wsUrl
 		info.LogUrlExtraHeaders = map[string]string{
