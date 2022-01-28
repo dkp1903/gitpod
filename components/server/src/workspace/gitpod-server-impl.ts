@@ -995,7 +995,7 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
     }
 
     public async getSuggestedContextURLs(ctx: TraceContext): Promise<string[]> {
-        const user = this.checkUser("getSuggestedContextURLs");
+        this.checkUser("getSuggestedContextURLs");
         const suggestions: string[] = [];
 
         // Fetch all data sources in parallel for maximum speed (don't await before `Promise.allSettled(promises)` below!)
@@ -1008,20 +1008,13 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
         }));
 
         // User repositories
-        user.identities.forEach(identity => {
-            const provider = {
-                'Public-GitLab': 'gitlab.com',
-                'Public-GitHub': 'github.com',
-                'Public-Bitbucket': 'bitbucket.org',
-            }[identity.authProviderId];
-            if (!provider) {
-                return;
-            }
-            promises.push(this.getProviderRepositoriesForUser(ctx, { provider }).then(userRepos => {
-                // log('got', provider, 'user repos', userRepos)
+        promises.push(this.getAuthProviders(ctx).then(authProviders => Promise.all(authProviders.map(p => {
+            // TODO(janx): Refactor this in order not to limit results to app installations & not fetch projects.
+            // This should be entirely about proposing great matches for a user, no matter an app is installed.
+            return this.getProviderRepositoriesForUser(ctx, { provider: p.host }).then(userRepos => {
                 userRepos.forEach(r => suggestions.push(r.cloneUrl.replace(/\.git$/, '')));
-            }));
-        });
+            });
+        }))));
 
         // Recent repositories
         promises.push(this.getWorkspaces(ctx, { /* limit: 20 */ }).then(workspaces => {
