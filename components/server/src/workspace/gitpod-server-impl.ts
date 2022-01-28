@@ -1012,6 +1012,7 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
             // TODO(janx): Refactor this in order not to limit results to app installations & not fetch projects.
             // This should be entirely about proposing great matches for a user, no matter an app is installed.
             return this.getProviderRepositoriesForUser(ctx, { provider: p.host }).then(userRepos => {
+                log.info('got' + p.host + ' user repos ' + JSON.stringify(userRepos, null, 2));
                 userRepos.forEach(r => suggestions.push(r.cloneUrl.replace(/\.git$/, '')));
             });
         }))));
