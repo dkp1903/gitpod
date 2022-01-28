@@ -1,0 +1,270 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+    cni.projectcalico.org/containerID: 78c6692ea7cf6c22a6bf9cc704d99d8219e072f5f5eb36ae1691af7e5a0b9454
+    cni.projectcalico.org/podIP: 10.96.0.199/32
+    cni.projectcalico.org/podIPs: 10.96.0.199/32
+    container.apparmor.security.beta.kubernetes.io/workspace: unconfined
+    gitpod.io/annotation.baseref: eu.gcr.io/gitpod-core-dev/build/base-images:6e13a0b27c3f29aea0fc8d42b2380bc7f954ec20ca98e49272efdfe60511a870
+    gitpod.io/annotation.ref: eu.gcr.io/gitpod-core-dev/build/workspace-images:19330680f27bc747638cfaafb972455e994c5ff8cdc0b6fceabb76a966dc49e7
+    gitpod.io/nodeName: gke-core-dev-workspace-0-068e0fea-rnw6
+    gitpod.io/requiredNodeServices: ws-daemon,registry-facade
+    gitpod/admission: admit_owner_only
+    gitpod/contentInitializer: EsYBCidodHRwczovL2dpdGh1Yi5jb20vZ2Vyb3BsL3JvYm9yYWxseS5naXQYASIoZjRmNjExY2NjMjFkNzVlYWIyMzk0NzE0OGE4OGJiZWQ2YjYyNWMzMioBLjJsEAIqaGh0dHBzOi8vZ3BsLTc4NzQtaW1hZ2VidWlsZC1sb2dzLnN0YWdpbmcuZ2l0cG9kLWRldi5jb20vYXBpL290cy9nZXQvNTczOTJjYWQtNjRkZi00YjJjLWIyZWQtNDRhNWZmMTczZTAx
+    gitpod/customTimeout: 1h0m0s
+    gitpod/id: dcbc91f9-f78f-408d-b473-6a910f59fecd
+    gitpod/imageSpec: Cl5ldS5nY3IuaW8vZ2l0cG9kLWNvcmUtZGV2L2J1aWxkL2ltYWdlLWJ1aWxkZXItbWszL2JvYjpjNmZkYzhmMzZkZWZkNDZiMDdlZGUxZGQ3YTI5NDg0NmYxMDkzYzUxEl5ldS5nY3IuaW8vZ2l0cG9kLWNvcmUtZGV2L2J1aWxkL2ltYWdlLWJ1aWxkZXItbWszL2JvYjpjNmZkYzhmMzZkZWZkNDZiMDdlZGUxZGQ3YTI5NDg0NmYxMDkzYzUx
+    gitpod/never-ready: "true"
+    gitpod/ownerToken: PYqwDarFJ7fzRWkAk0TxZ-60FwedsXDT
+    gitpod/servicePrefix: dcbc91f9-f78f-408d-b473-6a910f59fecd
+    gitpod/url: https://dcbc91f9-f78f-408d-b473-6a910f59fecd.ws-dev.gpl-7874-imagebuild-logs.staging.gitpod-dev.com
+    kubernetes.io/psp: staging-gpl-7874-imagebuild-logs-ns-workspace
+    prometheus.io/path: /metrics
+    prometheus.io/port: "23000"
+    prometheus.io/scrape: "true"
+    seccomp.security.alpha.kubernetes.io/pod: localhost/workspace_default_gpl-7874-imagebuild-logs.5.json
+  creationTimestamp: "2022-01-28T15:21:24Z"
+  finalizers:
+  - gitpod.io/finalizer
+  labels:
+    app: gitpod
+    component: workspace
+    gitpod.io/networkpolicy: default
+    gpwsman: "true"
+    headless: "true"
+    metaID: dcbc91f9-f78f-408d-b473-6a910f59fecd
+    owner: image-builder
+    workspaceID: dcbc91f9-f78f-408d-b473-6a910f59fecd
+    workspaceType: imagebuild
+  name: imagebuild-dcbc91f9-f78f-408d-b473-6a910f59fecd
+  namespace: staging-gpl-7874-imagebuild-logs
+  resourceVersion: "162293199"
+  uid: 3daa17d6-d97a-42f2-855d-73c3a65d105c
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: gitpod.io/workload_workspace_headless
+            operator: Exists
+          - key: gitpod.io/ws-daemon_ready_ns_staging-gpl-7874-imagebuild-logs
+            operator: Exists
+          - key: gitpod.io/registry-facade_ready_ns_staging-gpl-7874-imagebuild-logs
+            operator: Exists
+          - key: gitpod.io/workspace_0
+            operator: Exists
+  automountServiceAccountToken: false
+  containers:
+  - command:
+    - /.supervisor/workspacekit
+    - ring0
+    env:
+    - name: GITPOD_REPO_ROOT
+      value: /workspace
+    - name: GITPOD_CLI_APITOKEN
+      value: -83OkRLY5gTgenlrHE447uqcWcJvfkXB
+    - name: GITPOD_WORKSPACE_ID
+      value: dcbc91f9-f78f-408d-b473-6a910f59fecd
+    - name: GITPOD_INSTANCE_ID
+      value: dcbc91f9-f78f-408d-b473-6a910f59fecd
+    - name: GITPOD_THEIA_PORT
+      value: "23000"
+    - name: THEIA_WORKSPACE_ROOT
+      value: /workspace/.gitpod
+    - name: GITPOD_HOST
+      value: https://gpl-7874-imagebuild-logs.staging.gitpod-dev.com
+    - name: GITPOD_WORKSPACE_URL
+      value: https://dcbc91f9-f78f-408d-b473-6a910f59fecd.ws-dev.gpl-7874-imagebuild-logs.staging.gitpod-dev.com
+    - name: GITPOD_WORKSPACE_CLUSTER_HOST
+      value: ws-dev.gpl-7874-imagebuild-logs.staging.gitpod-dev.com
+    - name: THEIA_SUPERVISOR_ENDPOINT
+      value: :22999
+    - name: THEIA_WEBVIEW_EXTERNAL_ENDPOINT
+      value: webview-{{hostname}}
+    - name: THEIA_MINI_BROWSER_HOST_PATTERN
+      value: browser-{{hostname}}
+    - name: BOB_TARGET_REF
+      value: localhost:8080/target:latest
+    - name: BOB_BASE_REF
+      value: localhost:8080/base:latest
+    - name: BOB_BUILD_BASE
+      value: "true"
+    - name: BOB_DOCKERFILE_PATH
+      value: /workspace/.gitpod/Dockerfile
+    - name: BOB_CONTEXT_DIR
+      value: /workspace/.gitpod
+    - name: GITPOD_TASKS
+      value: '[{"name": "build", "init": "sudo -E /app/bob build"}]'
+    - name: WORKSPACEKIT_RING2_ENCLAVE
+      value: /app/bob proxy
+    - name: WORKSPACEKIT_BOBPROXY_BASEREF
+      value: eu.gcr.io/gitpod-core-dev/build/base-images:6e13a0b27c3f29aea0fc8d42b2380bc7f954ec20ca98e49272efdfe60511a870
+    - name: WORKSPACEKIT_BOBPROXY_TARGETREF
+      value: eu.gcr.io/gitpod-core-dev/build/workspace-images:19330680f27bc747638cfaafb972455e994c5ff8cdc0b6fceabb76a966dc49e7
+    - name: WORKSPACEKIT_BOBPROXY_AUTH
+      valueFrom:
+        secretKeyRef:
+          key: .dockerconfigjson
+          name: gcp-sa-registry-auth
+    - name: SUPERVISOR_DEBUG_ENABLE
+      value: "false"
+    - name: GITPOD_INTERVAL
+      value: "30000"
+    - name: GITPOD_MEMORY
+      value: "2147"
+    - name: GITPOD_HEADLESS
+      value: "true"
+    image: reg.gpl-7874-imagebuild-logs.staging.gitpod-dev.com:30623/remote/dcbc91f9-f78f-408d-b473-6a910f59fecd
+    imagePullPolicy: IfNotPresent
+    name: workspace
+    ports:
+    - containerPort: 23000
+      protocol: TCP
+    readinessProbe:
+      failureThreshold: 600
+      httpGet:
+        path: /_supervisor/v1/status/content/wait/true
+        port: 22999
+        scheme: HTTP
+      initialDelaySeconds: 3
+      periodSeconds: 1
+      successThreshold: 1
+      timeoutSeconds: 1
+    resources:
+      requests:
+        cpu: "1"
+        memory: 2Gi
+    securityContext:
+      allowPrivilegeEscalation: true
+      capabilities:
+        add:
+        - AUDIT_WRITE
+        - FSETID
+        - KILL
+        - NET_BIND_SERVICE
+        - SYS_PTRACE
+        drop:
+        - SETPCAP
+        - CHOWN
+        - NET_RAW
+        - DAC_OVERRIDE
+        - FOWNER
+        - SYS_CHROOT
+        - SETFCAP
+        - SETUID
+        - SETGID
+      privileged: false
+      readOnlyRootFilesystem: false
+      runAsGroup: 33333
+      runAsNonRoot: true
+      runAsUser: 33333
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /workspace
+      mountPropagation: HostToContainer
+      name: vol-this-workspace
+    - mountPath: /.workspace
+      mountPropagation: HostToContainer
+      name: daemon-mount
+    - mountPath: /usr/local/share/ca-certificates/gitpod-ca.crt
+      name: gitpod-ca-certificate
+      readOnly: true
+      subPath: ca.crt
+  dnsConfig:
+    nameservers:
+    - 1.1.1.1
+    - 8.8.8.8
+  dnsPolicy: None
+  enableServiceLinks: false
+  hostname: dcbc91f9-f78f-408d-b473-6a910f59fecd
+  nodeName: gke-core-dev-workspace-0-068e0fea-rnw6
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Never
+  schedulerName: gke.io/optimize-utilization-scheduler
+  securityContext:
+    fsGroup: 1
+    seccompProfile:
+      localhostProfile: workspace_default_gpl-7874-imagebuild-logs.5.json
+      type: Localhost
+    supplementalGroups:
+    - 1
+  serviceAccount: workspace
+  serviceAccountName: workspace
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/disk-pressure
+    operator: Exists
+  - effect: NoExecute
+    key: node.kubernetes.io/memory-pressure
+    operator: Exists
+  - effect: NoExecute
+    key: node.kubernetes.io/network-unavailable
+    operator: Exists
+    tolerationSeconds: 30
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - hostPath:
+      path: /var/gitpod/workspaces/dcbc91f9-f78f-408d-b473-6a910f59fecd
+      type: DirectoryOrCreate
+    name: vol-this-workspace
+  - hostPath:
+      path: /var/gitpod/workspaces/dcbc91f9-f78f-408d-b473-6a910f59fecd-daemon
+      type: DirectoryOrCreate
+    name: daemon-mount
+  - name: gitpod-ca-certificate
+    secret:
+      defaultMode: 420
+      items:
+      - key: ca.crt
+        path: ca.crt
+      secretName: builtin-registry-facade-cert
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2022-01-28T15:21:24Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2022-01-28T15:21:28Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2022-01-28T15:21:28Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2022-01-28T15:21:24Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://2da82f31250b175fb9efc50dd44f784a9f01f56a5ff0972b5ba99e37ad62589f
+    image: reg.gpl-7874-imagebuild-logs.staging.gitpod-dev.com:30623/remote/6e0074b5-01ca-4698-bd9e-d756d26ac58e:latest
+    imageID: reg.gpl-7874-imagebuild-logs.staging.gitpod-dev.com:30623/remote/6e0074b5-01ca-4698-bd9e-d756d26ac58e@sha256:9252e17d266f6bd5014ff4d429744ce8261507a888d248887714c42adc05cc77
+    lastState: {}
+    name: workspace
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2022-01-28T15:21:25Z"
+  hostIP: 10.132.0.11
+  phase: Running
+  podIP: 10.96.0.199
+  podIPs:
+  - ip: 10.96.0.199
+  qosClass: Burstable
+  startTime: "2022-01-28T15:21:24Z"

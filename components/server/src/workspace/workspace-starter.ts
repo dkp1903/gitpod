@@ -572,6 +572,7 @@ export class WorkspaceStarter {
             // Make sure we persist logInfo as soon as we retrieve it
             const imageBuildLogInfo = new Deferred<ImageBuildLogInfo>();
             imageBuildLogInfo.promise.then(async logInfo => {
+                log.warn("IMAGE_BUILD_INFO resolved!");
                 await this.workspaceDb.trace({span}).updatePartial(workspace.id, {
                     imageBuildLogInfo: logInfo,
                 }).catch(err => log.error("error writing image build log info to the DB", err));

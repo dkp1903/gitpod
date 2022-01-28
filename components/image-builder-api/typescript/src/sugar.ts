@@ -170,7 +170,6 @@ export class PromisifiedImageBuilderClient {
                     resultResp.baseRef = resp.getBaseRef();
                 }
 
-                log.warn(`BUILDINFO: ${JSON.stringify(resp.getInfo()?.toObject(), undefined, 2)}`)
                 if (resp.hasInfo() && !logInfo.isResolved) {
                     // assumes that log info stays stable for instance lifetime
                     const info = resp.getInfo()

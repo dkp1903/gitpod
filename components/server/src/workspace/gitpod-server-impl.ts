@@ -1113,33 +1113,45 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
         traceWI(ctx, { workspaceId });
 
         const user = this.checkAndBlockUser("watchWorkspaceImageBuildLogs", undefined, { workspaceId });
-        const logCtx: LogContext = { userId: user.id, workspaceId };
-
         const client = this.client;
         if (!client) {
             return;
         }
 
-        const { instance, workspace } = await this.internGetCurrentWorkspaceInstance(ctx, workspaceId);
+        const logCtx: LogContext = { userId: user.id, workspaceId };
+        let { instance, workspace } = await this.internGetCurrentWorkspaceInstance(ctx, workspaceId);
         if (!instance) {
             log.debug(logCtx, `No running instance for workspaceId.`);
             return;
         }
         traceWI(ctx, { instanceId: instance.id });
-        if (!workspace.imageNameResolved) {
-            log.debug(logCtx, `No imageNameResolved set for workspaceId, cannot watch logs.`);
-            return;
-        }
         const teamMembers = await this.getTeamMembersByProject(workspace.projectId);
         await this.guardAccess({ kind: "workspaceInstance", subject: instance, workspace, teamMembers }, "get");
 
-        if (!workspace.imageBuildLogInfo) {
-            log.warn(logCtx, "imageBuildLogInfo: fallback!");
+        // wait for up to 20s for imageBuildLogInfo to appear due to:
+        //  - db-sync round-trip times
+        //  - but also: wait until the image build actually started (image pull!), and log info is available!
+        for (let i = 0; i < 10; i++) {
+            if (workspace.imageBuildLogInfo) {
+                break;
+            }
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
+            const ws = await this.workspaceDb.trace(ctx).findById(workspaceId);
+            if (!ws) {
+                log.warn(logCtx, `no workspace for workspaceId.`);
+                return;
+            }
+            workspace = ws;
+        }
+
+        if (!workspace.imageBuildLogInfo) {
             // during roll-out this is our fall-back case.
-            // Afterwards we might want to do some spinning-lock and re-check for a certain perdio (30s?) to give db-sync
+            // Afterwards we might want to do some spinning-lock and re-check for a certain period (30s?) to give db-sync
             // a change to move the imageBuildLogInfo across the globe.
-            await this.deprecatedDoWatchWorkspaceImageBuildLogs(ctx, logCtx, workspace.imageNameResolved);
+
+            log.warn(logCtx, "imageBuildLogInfo: fallback!");
+            await this.deprecatedDoWatchWorkspaceImageBuildLogs(ctx, logCtx, workspace);
             return;
         }
 
@@ -1177,12 +1189,17 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
         }
     }
 
-    protected async deprecatedDoWatchWorkspaceImageBuildLogs(ctx: TraceContext, logCtx: LogContext, imageNameResolved: string) {
+    protected async deprecatedDoWatchWorkspaceImageBuildLogs(ctx: TraceContext, logCtx: LogContext, workspace: Workspace) {
+        if (!workspace.imageNameResolved) {
+            log.debug(logCtx, `No imageNameResolved set for workspaceId, cannot watch logs.`);
+            return;
+        }
+
         try {
             const imgbuilder = this.imageBuilderClientProvider.getDefault();
             const req = new LogsRequest();
             req.setCensored(true);
-            req.setBuildRef(imageNameResolved);
+            req.setBuildRef(workspace.imageNameResolved);
 
             let lineCount = 0;
             imgbuilder.logs(ctx, req, data => {
