@@ -12,7 +12,7 @@ import { CompositeResourceAccessGuard, OwnerResourceGuard, TeamMemberResourceGua
 import { DBWithTracing, TracedWorkspaceDB } from "@gitpod/gitpod-db/lib/traced-db";
 import { WorkspaceDB } from "@gitpod/gitpod-db/lib/workspace-db";
 import { TeamDB } from "@gitpod/gitpod-db/lib/team-db";
-import { HeadlessLogService } from "./headless-log-service";
+import { HeadlessLogService, WorkspaceInstanceEndpoint } from "./headless-log-service";
 import * as opentracing from 'opentracing';
 import { asyncHandler } from "../express-util";
 import { Deferred } from "@gitpod/gitpod-protocol/lib/util/deferred";
@@ -88,7 +88,8 @@ export class HeadlessLogController {
                         process.nextTick(resolve);
                     }
                 }));
-                await this.headlessLogService.streamWorkspaceLog(instance, params.terminalId, writeToResponse, aborted);
+                const wsiEndpoint = WorkspaceInstanceEndpoint.fromWithOwnerToken(instance);
+                await this.headlessLogService.streamWorkspaceLog(wsiEndpoint, params.terminalId, writeToResponse, aborted);
 
                 // In an ideal world, we'd use res.addTrailers()/response.trailer here. But despite being introduced with HTTP/1.1 in 1999, trailers are not supported by popular proxies (nginx, for example).
                 // So we resort to this hand-written solution
