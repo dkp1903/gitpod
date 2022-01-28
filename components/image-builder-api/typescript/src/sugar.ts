@@ -131,11 +131,10 @@ export class PromisifiedImageBuilderClient {
 
     // build returns a nested promise. The outer one resolves/rejects with the build start,
     // the inner one resolves/rejects when the build is done.
-    public build(ctx: TraceContext, request: BuildRequest): Promise<StagedBuildResponse> {
+    public build(ctx: TraceContext, request: BuildRequest, logInfo: Deferred<ImageBuildLogInfo> = new Deferred<ImageBuildLogInfo>()): Promise<StagedBuildResponse> {
         const span = TraceContext.startSpan(`/image-builder/build`, ctx);
 
         const buildResult = new Deferred<BuildResponse>();
-        const logInfo = new Deferred<ImageBuildLogInfo>();
 
         const result = new Deferred<StagedBuildResponse>();
         const resultResp: StagedBuildResponse = {
@@ -171,6 +170,7 @@ export class PromisifiedImageBuilderClient {
                     resultResp.baseRef = resp.getBaseRef();
                 }
 
+                log.warn(`BUILDINFO: ${JSON.stringify(resp.getInfo()?.toObject(), undefined, 2)}`)
                 if (resp.hasInfo() && !logInfo.isResolved) {
                     // assumes that log info stays stable for instance lifetime
                     const info = resp.getInfo()

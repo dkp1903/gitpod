@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 	"golang.org/x/xerrors"
 
-	"github.com/gitpod-io/gitpod/common-go/kubernetes"
 	"github.com/gitpod-io/gitpod/common-go/log"
 	"github.com/gitpod-io/gitpod/common-go/tracing"
 	"github.com/gitpod-io/gitpod/image-builder/api"

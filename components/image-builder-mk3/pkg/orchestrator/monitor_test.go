@@ -12,7 +12,6 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/gitpod-io/gitpod/common-go/kubernetes"
 	"github.com/gitpod-io/gitpod/image-builder/api"
 	wsmanapi "github.com/gitpod-io/gitpod/ws-manager/api"
 )
@@ -89,9 +88,8 @@ func TestExtractBuildResponse(t *testing.T) {
 				Metadata: &wsmanapi.WorkspaceMetadata{
 					MetaId: buildID,
 					Annotations: map[string]string{
-						annotationRef:                     ref,
-						annotationBaseRef:                 baseref,
-						kubernetes.WorkspaceURLAnnotation: url,
+						annotationRef:     ref,
+						annotationBaseRef: baseref,
 					},
 					StartedAt: timestamppb.New(time.Unix(startedAt, 0)),
 				},
@@ -99,6 +97,9 @@ func TestExtractBuildResponse(t *testing.T) {
 				Phase:      wsmanapi.WorkspacePhase_RUNNING,
 				Auth: &wsmanapi.WorkspaceAuthentication{
 					OwnerToken: ownerToken,
+				},
+				Spec: &wsmanapi.WorkspaceSpec{
+					Url: url,
 				},
 			}
 			test.Mod(status)
