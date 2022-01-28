@@ -247,6 +247,23 @@ export class HeadlessLogService {
     }
 
     /**
+     * Streaming imagebuild logs is different to other headless workspaces (prebuilds) because we do not store them as "workspace" (incl. status, etc.), but have a special field "workspace.imageBuildLogInfo".
+     * @param wsiEndpoint
+     * @param sink
+     * @param aborted
+     */
+    async streamImageBuildLog(wsiEndpoint: WorkspaceInstanceEndpoint, sink: (chunk: string) => Promise<void>, aborted: Deferred<boolean>): Promise<void> {
+        const tasks = await this.supervisorListTasks(wsiEndpoint);
+        if (tasks.length === 0) {
+            throw new Error(`imagebuild logs: not tasks found for instanceId ${wsiEndpoint.instanceId}!`);
+        }
+
+        // we're just looking at the first stream; image builds just have one stream atm
+        const task = tasks[0];
+        await this.streamWorkspaceLog(wsiEndpoint, task.getTerminal(), sink, aborted);
+    }
+
+    /**
      * Retries op while the passed WorkspaceInstance is still starting. Retries are stopped if either:
      *  - `op` calls `cancel()` and an err is thrown, it is re-thrown by this method
      *  - `aborted` resolves to `true`: `undefined` is returned
