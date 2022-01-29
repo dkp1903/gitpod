@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo 'patching configmap server-config'
 LINE="\"githubApp\": \{\"appId\":${GH_APP_ID},\"authProviderId\":\"Public-GitHub\",\"certPath\":\"\/github-app-cert\/cert\",\"certSecretName\":\"server-github-app-cert\",\"enabled\":true,\"marketplaceName\":\"gitpod-io\",\"webhookSecret\":\"omgsecret\"}"
 kubectl get cm server-config -o yaml > server-config.yml
